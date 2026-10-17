@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#181c24">
+  <title>Chicken Road Arcade - Realistic 20 Lanes Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Firebase App SDK & Realtime Database SDK (Matched with FD44) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0f1217;
+      --header-bg: #1a1e27;
+      --panel-bg: #212631;
+      --control-card-bg: #2a303e;
+      --input-bg: #353d4f;
+      --border-color: #3d4659;
+      --btn-green: #2ecc71;
+      --btn-green-glow: #00e676;
+      --btn-blue: #0091ea;
+      --btn-blue-hover: #00b0ff;
+      --btn-red: #ff3b30;
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+      --accent-gold: #ffb300;
+      --font-ui: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: 'Fredoka', cursive, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: var(--font-ui);
+      color: var(--text-white);
+      touch-action: manipulation;
+    }
+
+    .app-viewport {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      max-width: 440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background-color: #1f242e;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      overflow: hidden;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background-color: var(--header-bg);
+      border-bottom: 2px solid #14171e;
+      z-index: 30;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .brand-badge {
+      background: #e74c3c;
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+    }
+
+    .balance-pill {
+      display: flex;
+      align-items: center;
+      background: #272d3a;
+      border-radius: 9px;
+      padding: 4px 10px;
+      border: 1px solid #363e50;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .wallet-dropdown-btn {
+      color: #7b889b;
+      margin-right: 6px;
+      font-size: 0.72rem;
+    }
+    .balance-val {
+      font-size: 1.05rem;
+      font-weight: 900;
+      margin-right: 4px;
+      color: #fff;
+    }
+    .taka-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 19px;
+      height: 19px;
+      background: #475267;
+      border-radius: 50%;
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .menu-burger {
+      background: none;
+      border: none;
+      color: #c4cdd8;
+      cursor: pointer;
+      display: flex;
+      padding: 4px;
+    }
+
+    /* Live Win Strip */
+    .live-win-bar {
+      position: absolute;
+      top: 52px;
+      left: 10px;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .online-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #adb5bd;
+      background: rgba(18, 20, 26, 0.88);
+      padding: 2px 8px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+      width: fit-content;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background: #2ecc71;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #2ecc71;
+    }
+    .live-user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(22, 26, 34, 0.95);
+      border: 1px solid #333d4e;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      animation: fadeInSlide 0.4s ease-out;
+    }
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateX(-15px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .user-cash { color: #2ecc71; font-weight: 900; }
+
+    /* Canvas Viewport */
+    .game-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #3b3f47;
+      overflow: hidden;
+    }
+    #gameCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Celebration Splash */
+    .cashout-splash {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(16, 20, 28, 0.96);
+      border: 2px solid var(--btn-green);
+      box-shadow: 0 10px 40px rgba(46, 204, 113, 0.5);
+      padding: 18px 28px;
+      border-radius: 20px;
+      text-align: center;
+      z-index: 40;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .cashout-splash.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .cashout-splash h3 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--btn-green);
+      margin-bottom: 4px;
+    }
+    .cashout-splash p {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    /* Bottom Control Panel */
+    .bottom-bet-panel {
+      position: relative;
+      z-index: 30;
+      background: var(--panel-bg);
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+      border-top: 2px solid #1a1e27;
+      box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.5);
+    }
+    .panel-card {
+      background: var(--control-card-bg);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid #374052;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border-radius: 12px;
+      height: 44px;
+      padding: 3px;
+      border: 1px solid #444f65;
+    }
+    .limit-btn {
+      background: #475269;
+      border: none;
+      color: #e2e8f0;
+      font-size: 0.8rem;
+      font-weight: 900;
+      padding: 0 16px;
+      height: 100%;
+      border-radius: 9px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.15s, transform 0.08s;
+    }
+    .limit-btn:active {
+      background: #55627d;
+      transform: scale(0.96);
+    }
+    .bet-input-box {
+      flex: 1;
+      text-align: center;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 1.25rem;
+      font-weight: 900;
+      font-family: var(--font-ui);
+    }
+
+    .presets-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .preset-btn {
+      background: var(--input-bg);
+      border: 1px solid #434e63;
+      color: #fff;
+      border-radius: 9px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-weight: 900;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .preset-btn:active {
+      background: #4a5770;
+      transform: scale(0.96);
+    }
+
+    .dropdown-container {
+      position: relative;
+    }
+    .difficulty-select-btn {
+      width: 100%;
+      height: 40px;
+      background: var(--input-bg);
+      border: 1px solid #434e63;
+      border-radius: 9px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 800;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .dropdown-options {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      background: #232834;
+      border: 1px solid #3c465a;
+      border-radius: 12px;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      display: none;
+      z-index: 50;
+    }
+    .dropdown-options.show { display: block; }
+    .opt-item {
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #2e3544;
+      cursor: pointer;
+    }
+    .opt-item:hover, .opt-item.selected {
+      background: #31394a;
+      color: #2ecc71;
+    }
+
+    .action-button-group {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      height: 56px;
+    }
+
+    .btn-play-initial {
+      flex: 1;
+      height: 100%;
+      background: var(--btn-green);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(46, 204, 113, 0.35);
+      transition: transform 0.08s, background 0.15s;
+    }
+    .btn-play-initial:active {
+      transform: scale(0.98);
+    }
+
+    .btn-go-forward {
+      flex: 1;
+      height: 100%;
+      background: linear-gradient(180deg, #0091ea 0%, #0077c2 100%);
+      border: none;
+      border-bottom: 3px solid #005b94;
+      border-radius: 12px;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 145, 234, 0.35);
+      transition: transform 0.08s;
+    }
+    .btn-go-forward:active {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+    .btn-go-forward:disabled {
+      opacity: 0.45;
+      filter: grayscale(1);
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-cashout-take {
+      flex: 1.25;
+      height: 100%;
+      background: linear-gradient(180deg, #00e676 0%, #00b359 100%);
+      border: none;
+      border-bottom: 3px solid #00873f;
+      border-radius: 12px;
+      color: #062b13;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      line-height: 1.1;
+      box-shadow: 0 4px 18px rgba(0, 230, 118, 0.4);
+      transition: transform 0.08s;
+      animation: pulseCashout 1.5s infinite;
+    }
+    .btn-cashout-take:active {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+    .btn-cashout-take:disabled {
+      opacity: 0.45;
+      filter: grayscale(1);
+      animation: none;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .cashout-sub {
+      font-size: 0.72rem;
+      font-weight: 900;
+      opacity: 0.85;
+      font-family: var(--font-ui);
+    }
+    @keyframes pulseCashout {
+      0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+    }
+
+    .dialog-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 12, 16, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s;
+    }
+    .dialog-overlay.active { opacity: 1; visibility: visible; }
+    .dialog-box {
+      width: 100%;
+      max-width: 320px;
+      background: #232732;
+      border: 1px solid #363e50;
+      border-radius: 20px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .dialog-box h3 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    .dialog-box p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .dialog-btn {
+      width: 100%;
+      height: 46px;
+      background: var(--btn-green);
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    
+    <header class="top-navbar">
+      <div class="brand-title">
+        <span>CHICKEN</span>
+        <span class="brand-badge">20</span>
+        <span style="color:#f39c12;">ROAD</span>
+      </div>
+
+      <div class="balance-pill" id="balance-pill-btn">
+        <span class="wallet-dropdown-btn">▼</span>
+        <span class="balance-val" id="user-balance-text">0.00</span>
+        <span class="taka-icon">৳</span>
+      </div>
+
+      <button class="menu-burger" id="btn-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+    </header>
+
+    <div class="live-win-bar">
+      <div class="online-indicator">
+        <span class="pulse-dot"></span>
+        <span>Online: <strong id="online-counter">12480</strong></span>
+      </div>
+      <div class="live-user-pill" id="live-user-toast">
+        <span class="user-avatar">🇧🇩</span>
+        <span id="toast-username">Shakib</span>
+        <span class="user-cash" id="toast-winamount">+৳380.00</span>
+      </div>
+    </div>
+
+    <main class="game-viewport" id="viewport-box">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="cashout-splash" id="cashout-alert">
+        <h3 id="alert-heading">CASHED OUT!</h3>
+        <p id="alert-amount">+0.00 ৳</p>
+      </div>
+    </main>
+
+    <footer class="bottom-bet-panel">
+      <div class="panel-card">
+        
+        <div class="input-row">
+          <button class="limit-btn" id="btn-min">MIN</button>
+          <input type="number" id="bet-input" class="bet-input-box" value="50" min="5" max="1999">
+          <button class="limit-btn" id="btn-max">MAX</button>
+        </div>
+
+        <div class="presets-row">
+          <button class="preset-btn" data-amt="50">50 <span class="taka-icon">৳</span></button>
+          <button class="preset-btn" data-amt="80">80 <span class="taka-icon">৳</span></button>
+          <button class="preset-btn" data-amt="200">200 <span class="taka-icon">৳</span></button>
+          <button class="preset-btn" data-amt="500">500 <span class="taka-icon">৳</span></button>
+        </div>
+
+        <div class="dropdown-container">
+          <button class="difficulty-select-btn" id="diff-toggle-btn">
+            <span id="current-diff-text">Easy</span>
+            <span>▼</span>
+          </button>
+          <div class="dropdown-options" id="diff-menu">
+            <div class="opt-item selected" data-diff="easy">Easy (Safe Crossing)</div>
+            <div class="opt-item" data-diff="medium">Medium (Balanced)</div>
+            <div class="opt-item" data-diff="hard">Hard (High Risk / Multipliers)</div>
+            <div class="opt-item" data-diff="daredevil">Daredevil (Extreme Speed)</div>
+          </div>
+        </div>
+
+        <div class="action-button-group" id="action-btn-container">
+          <button class="btn-play-initial" id="btn-start-play">Play</button>
+        </div>
+
+      </div>
+    </footer>
+
+    <div class="dialog-overlay" id="refill-modal">
+      <div class="dialog-box">
+        <h3>ব্যালেন্স অপর্যাপ্ত!</h3>
+        <p>আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই। দয়া করে মেইন প্ল্যাটফর্ম থেকে ব্যালেন্স রিচার্জ করুন।</p>
+        <button class="dialog-btn" onclick="document.getElementById('refill-modal').classList.remove('active');">ঠিক আছে</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    'use strict';
+
+    /* --- MATCHED FIREBASE CONFIG WITH FD44 --- */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuqS2ujSIBbsUcdjg_gtZw0j67v4jguuM",
+      authDomain: "fd44-58291.firebaseapp.com",
+      databaseURL: "https://fd44-58291-default-rtdb.firebaseio.com",
+      projectId: "fd44-58291",
+      storageBucket: "fd44-58291.firebasestorage.app",
+      messagingSenderId: "854551788762",
+      appId: "1:854551788762:web:acb5b7994f1ac77255b9e3",
+      measurementId: "G-BJWS0YTBQV"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+    let activePhone = null;
+
+    /* --- SOUND FX ENGINE WITH CLUCKING SOUNDS --- */
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContextClass();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playHop() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const now = this.ctx.currentTime;
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+
+      playCluck() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(260, now + 0.12);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      }
+
+      playCarHorn() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [420, 520].forEach(f => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(f, now);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        });
+      }
+
+      playTireScreech() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1600, now);
+        osc.frequency.linearRampToValueAtTime(800, now + 0.4);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+
+      playChickenSquawk() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(900, now);
+        osc.frequency.linearRampToValueAtTime(1800, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(380, now + 0.45);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1700, now);
+        filter.Q.setValueAtTime(3.5, now);
+
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.45);
+      }
+
+      playCashout() {
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.5, 1567.98];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const now = this.ctx.currentTime + idx * 0.07;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.22, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.32);
+        });
+      }
+
+      playCrash() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.35);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(500, now);
+        filter.frequency.linearRampToValueAtTime(30, now + 0.35);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+    }
+
+    const DIFFICULTY_PRESETS = {
+      easy: {
+        name: 'Easy',
+        safeChance: 0.90,
+        speed: 1.0,
+        multipliers: [
+          1.04, 1.08, 1.14, 1.20, 1.28, 1.36, 1.46, 1.58, 1.72, 1.88,
+          2.08, 2.30, 2.60, 2.95, 3.40, 4.00, 4.80, 5.80, 7.20, 10.00
+        ]
+      },
+      medium: {
+        name: 'Medium',
+        safeChance: 0.82,
+        speed: 1.35,
+        multipliers: [
+          1.07, 1.15, 1.25, 1.38, 1.54, 1.74, 2.00, 2.32, 2.75, 3.30,
+          4.00, 4.90, 6.20, 8.00, 10.50, 14.00, 19.50, 28.00, 42.00, 65.00
+        ]
+      },
+      hard: {
+        name: 'Hard',
+        safeChance: 0.70,
+        speed: 1.75,
+        multipliers: [
+          1.12, 1.28, 1.48, 1.75, 2.12, 2.65, 3.35, 4.35, 5.80, 8.00,
+          11.20, 16.50, 24.00, 36.00, 56.00, 90.00, 150.0, 260.0, 480.0, 1000.0
+        ]
+      },
+      daredevil: {
+        name: 'Daredevil',
+        safeChance: 0.55,
+        speed: 2.15,
+        multipliers: [
+          1.20, 1.50, 1.95, 2.65, 3.75, 5.50, 8.20, 12.80, 20.50, 34.00,
+          58.00, 105.0, 195.0, 380.0, 750.0, 1550.0, 3300.0, 7200.0, 16000.0, 40000.0
+        ]
+      }
+    };
+
+    const CAR_TYPES = [
+      { bodyColor: '#f59e0b', roofColor: '#d97706', glassColor: '#1e293b', name: 'taxi', hasTaxiSign: true },
+      { bodyColor: '#0ea5e9', roofColor: '#0284c7', glassColor: '#0f172a', name: 'sport' },
+      { bodyColor: '#e11d48', roofColor: '#be123c', glassColor: '#0f172a', name: 'sedan' },
+      { bodyColor: '#8b5cf6', roofColor: '#6d28d9', glassColor: '#0f172a', name: 'coupe' },
+      { bodyColor: '#10b981', roofColor: '#059669', glassColor: '#0f172a', name: 'wagon' }
+    ];
+
+    class ChickenRoadMaster {
+      constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.sound = new SoundFX();
+
+        this.virtualBalance = 0.00;
+        this.currentBet = 50;
+        this.diffKey = 'easy';
+        this.difficulty = DIFFICULTY_PRESETS[this.diffKey];
+
+        this.state = 'IDLE'; 
+        this.currentStep = 0;
+        this.totalLanes = 20;
+        this.sidewalkWidth = 145;
+        this.laneWidth = 110;
+        this.finishWidth = 170;
+
+        this.cameraX = 0;
+        this.targetCameraX = 0;
+        this.screenShake = 0;
+        this.isUnderAttack = false;
+
+        this.chicken = {
+          x: 85,
+          y: 0,
+          targetX: 85,
+          targetY: 0,
+          jumpProgress: 1,
+          isJumping: false,
+          dead: false,
+          screaming: false,
+
+          scale: 1.45,
+          cluckTimer: 180,
+          blinkTimer: 150,
+          isBlinking: false,
+          eyeGlanceX: 0,
+          eyeGlanceY: 0,
+          glanceTimer: 80,
+
+          breathCycle: 0,
+          combWobble: 0,
+          tailWiggle: 0
+        };
+
+        this.lanes = [];
+        this.trees = [];
+        this.feathers = [];
+        this.skidMarks = [];
+
+        this.initDOM();
+        this.initDatabaseSync();
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.initWorld();
+
+        this.lastTime = performance.now();
+        requestAnimationFrame((t) => this.renderLoop(t));
+
+        this.initLiveWinnerTicker();
+      }
+
+      initDatabaseSync() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let phoneFound = urlParams.get('phone') || urlParams.get('user') || urlParams.get('uid');
+
+        if (!phoneFound) {
+          try {
+            if (window.parent && window.parent.user && window.parent.user.phone) {
+              phoneFound = window.parent.user.phone;
+            }
+          } catch(e) {}
+        }
+
+        if (!phoneFound) {
+          try { phoneFound = localStorage.getItem('bd99_user'); } catch(e) {}
+        }
+
+        if (phoneFound) {
+          this.bindUser(phoneFound);
+        } else {
+          database.ref('users').limitToLast(1).once('value', (snap) => {
+            if (snap.exists()) {
+              const data = snap.val();
+              const lastPhone = Object.keys(data)[0];
+              if (lastPhone) this.bindUser(lastPhone);
+            }
+          });
+        }
+      }
+
+      bindUser(phone) {
+        activePhone = phone;
+        try { localStorage.setItem('bd99_user', phone); } catch(e) {}
+
+        database.ref('users/' + phone + '/balance').on('value', (snapshot) => {
+          if (snapshot.exists() && snapshot.val() !== null) {
+            this.virtualBalance = parseFloat(snapshot.val()) || 0;
+            this.updateBalanceDisplay();
+
+            try {
+              if (window.parent && window.parent.document) {
+                window.parent.document.querySelectorAll('.userBalance').forEach(e => {
+                  e.innerText = this.virtualBalance.toFixed(2);
+                });
+              }
+            } catch(e) {}
+          }
+        });
+      }
+
+      deductRealBalance(amount) {
+        this.virtualBalance = parseFloat((this.virtualBalance - amount).toFixed(2));
+        this.updateBalanceDisplay();
+
+        if (activePhone) {
+          database.ref('users/' + activePhone + '/balance').transaction((curr) => {
+            let val = parseFloat(curr);
+            if (isNaN(val)) return 0;
+            return Math.max(0, parseFloat((val - amount).toFixed(2)));
+          });
+
+          database.ref('users/' + activePhone + '/wager_left').transaction((curr) => {
+            let left = parseFloat(curr || 0) - amount;
+            return left < 0 ? 0 : parseFloat(left.toFixed(2));
+          });
+        }
+
+        try {
+          if (window.parent && window.parent !== window) {
+            if (window.parent.user) window.parent.user.balance = this.virtualBalance;
+            if (typeof window.parent.updateUI === 'function') window.parent.updateUI();
+            if (window.parent.document) {
+              window.parent.document.querySelectorAll('.userBalance').forEach(e => {
+                e.innerText = this.virtualBalance.toFixed(2);
+              });
+            }
+          }
+        } catch(e) {}
+      }
+
+      addRealBalance(amount) {
+        if (amount <= 0) return;
+        this.virtualBalance = parseFloat((this.virtualBalance + amount).toFixed(2));
+        this.updateBalanceDisplay();
+
+        if (activePhone) {
+          database.ref('users/' + activePhone + '/balance').transaction((curr) => {
+            let val = parseFloat(curr || 0);
+            return parseFloat((val + amount).toFixed(2));
+          });
+        }
+
+        try {
+          if (window.parent && window.parent !== window) {
+            if (window.parent.user) window.parent.user.balance = this.virtualBalance;
+            if (typeof window.parent.updateUI === 'function') window.parent.updateUI();
+            if (window.parent.document) {
+              window.parent.document.querySelectorAll('.userBalance').forEach(e => {
+                e.innerText = this.virtualBalance.toFixed(2);
+              });
+            }
+          }
+        } catch(e) {}
+      }
+
+      initWorld() {
+        this.trees = [];
+        const h = this.canvas.height;
+        for (let y = 30; y < h + 100; y += 75) {
+          this.trees.push({
+            x: 22 + (Math.sin(y) * 6),
+            y: y,
+            size: 24 + (Math.cos(y) * 4)
+          });
+        }
+
+        this.lanes = [];
+        const mults = this.difficulty.multipliers;
+
+        for (let i = 0; i < this.totalLanes; i++) {
+          const laneCenterX = this.sidewalkWidth + (i * this.laneWidth) + (this.laneWidth / 2);
+          const dir = (i % 2 === 0) ? 1 : -1;
+          const speed = (1.15 + Math.random() * 0.75) * this.difficulty.speed * dir;
+
+          const carStyle1 = CAR_TYPES[Math.floor(Math.random() * CAR_TYPES.length)];
+          const carStyle2 = CAR_TYPES[Math.floor(Math.random() * CAR_TYPES.length)];
+
+          this.lanes.push({
+            index: i + 1,
+            centerX: laneCenterX,
+            direction: dir,
+            speed: speed,
+            multiplier: mults[i],
+            warning: false,
+            vehicles: [
+              { y: Math.random() * 280, length: 78, width: 36, speedMultiplier: 1, ...carStyle1 },
+              { y: Math.random() * 280 + 340, length: 82, width: 36, speedMultiplier: 1, ...carStyle2 }
+            ]
+          });
+        }
+
+        this.isUnderAttack = false;
+        this.resetChicken();
+      }
+
+      resetChicken() {
+        this.currentStep = 0;
+        const startX = 85;
+        const startY = this.canvas.height * 0.6;
+
+        this.chicken.x = startX;
+        this.chicken.y = startY;
+        this.chicken.targetX = startX;
+        this.chicken.targetY = startY;
+        this.chicken.jumpProgress = 1;
+        this.chicken.isJumping = false;
+        this.chicken.dead = false;
+        this.chicken.screaming = false;
+
+        this.cameraX = 0;
+        this.targetCameraX = 0;
+        this.screenShake = 0;
+        this.isUnderAttack = false;
+        this.feathers = [];
+        this.skidMarks = [];
+      }
+
+      initDOM() {
+        this.updateBalanceDisplay();
+        const betInput = document.getElementById('bet-input');
+
+        betInput.addEventListener('change', () => {
+          let val = parseInt(betInput.value, 10);
+          if (isNaN(val) || val < 5) val = 5;
+          if (val > 1999) val = 1999;
+          this.currentBet = val;
+          betInput.value = val;
+        });
+
+        document.getElementById('btn-min').onclick = () => {
+          this.sound.init();
+          this.currentBet = 5;
+          betInput.value = 5;
+        };
+
+        document.getElementById('btn-max').onclick = () => {
+          this.sound.init();
+          this.currentBet = 1999;
+          betInput.value = 1999;
+        };
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+          btn.onclick = () => {
+            this.sound.init();
+            const amt = parseInt(btn.dataset.amt, 10);
+            this.currentBet = amt;
+            betInput.value = amt;
+          };
+        });
+
+        const diffBtn = document.getElementById('diff-toggle-btn');
+        const diffMenu = document.getElementById('diff-menu');
+        diffBtn.onclick = () => diffMenu.classList.toggle('show');
+
+        document.querySelectorAll('.opt-item').forEach(item => {
+          item.onclick = () => {
+            if (this.state === 'RUNNING') return;
+            document.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            this.diffKey = item.dataset.diff;
+            this.difficulty = DIFFICULTY_PRESETS[this.diffKey];
+            document.getElementById('current-diff-text').textContent = this.difficulty.name;
+            diffMenu.classList.remove('show');
+            this.initWorld();
+          };
+        });
+
+        this.renderButtons();
+      }
+
+      updateBalanceDisplay() {
+        document.getElementById('user-balance-text').textContent = this.virtualBalance.toFixed(2);
+      }
+
+      renderButtons() {
+        const container = document.getElementById('action-btn-container');
+
+        if (this.state === 'IDLE' || this.state === 'CRASHED' || this.state === 'WON') {
+          container.innerHTML = `<button class="btn-play-initial" id="btn-start-play">Play</button>`;
+          document.getElementById('btn-start-play').onclick = () => {
+            this.sound.init();
+            this.startRound();
+          };
+        } else if (this.state === 'RUNNING') {
+          const currentMult = this.currentStep === 0 ? 1.00 : this.lanes[this.currentStep - 1].multiplier;
+          const currentWin = (this.currentBet * currentMult).toFixed(2);
+          
+          const isDisabled = (this.isUnderAttack || this.chicken.dead);
+          const isCashoutDisabled = (this.currentStep === 0 || isDisabled);
+
+          container.innerHTML = `
+            <button class="btn-go-forward" id="btn-go-action" ${isDisabled ? 'disabled' : ''}>
+              <span>GO</span> ➔
+            </button>
+            <button class="btn-cashout-take" id="btn-cashout-action" ${isCashoutDisabled ? 'disabled' : ''}>
+              <span>CASH OUT</span>
+              <span class="cashout-sub">৳${currentWin} (${currentMult.toFixed(2)}x)</span>
+            </button>
+          `;
+
+          if (!isDisabled) {
+            document.getElementById('btn-go-action').onclick = (e) => {
+              e.stopPropagation();
+              this.sound.init();
+              this.stepForward();
+            };
+
+            if (!isCashoutDisabled) {
+              document.getElementById('btn-cashout-action').onclick = (e) => {
+                e.stopPropagation();
+                this.sound.init();
+                this.cashOut();
+              };
+            }
+          }
+        }
+      }
+
+      startRound() {
+        if (this.virtualBalance < this.currentBet) {
+          document.getElementById('refill-modal').classList.add('active');
+          return;
+        }
+
+        this.deductRealBalance(this.currentBet);
+        this.state = 'RUNNING';
+        this.initWorld();
+        this.renderButtons();
+      }
+
+      stepForward() {
+        if (this.isUnderAttack || this.chicken.isJumping || this.chicken.dead) return;
+
+        this.currentStep++;
+        this.sound.playHop();
+
+        if (this.currentStep > this.totalLanes) {
+          const finishX = this.sidewalkWidth + (this.totalLanes * this.laneWidth) + (this.finishWidth / 2);
+          this.chicken.targetX = finishX;
+          this.chicken.jumpProgress = 0;
+          this.chicken.isJumping = true;
+          setTimeout(() => {
+            this.cashOut(true);
+          }, 400);
+          return;
+        }
+
+        const targetLane = this.lanes[this.currentStep - 1];
+        this.chicken.targetX = targetLane.centerX;
+        this.chicken.jumpProgress = 0;
+        this.chicken.isJumping = true;
+
+        const isSafe = Math.random() < this.difficulty.safeChance;
+
+        if (!isSafe) {
+          this.isUnderAttack = true;
+          this.spawnSuddenAttackingCar(targetLane);
+        } else {
+          targetLane.vehicles.forEach(veh => {
+            if (Math.abs(veh.y - this.chicken.y) < 160) {
+              veh.y = (targetLane.direction > 0) ? this.chicken.y + 190 : this.chicken.y - 190;
+            }
+          });
+        }
+
+        this.renderButtons();
+      }
+
+      spawnSuddenAttackingCar(lane) {
+        lane.warning = true;
+        this.renderButtons();
+        
+        setTimeout(() => {
+          this.sound.playCarHorn();
+          this.sound.playTireScreech();
+        }, 50);
+
+        const isDown = lane.direction > 0;
+        const attackCar = {
+          y: isDown ? -200 : this.canvas.height + 200,
+          length: 90,
+          width: 38,
+          bodyColor: '#dc2626',
+          roofColor: '#991b1b',
+          glassColor: '#000000',
+          isKiller: true,
+          speedMultiplier: 6.2
+        };
+
+        lane.vehicles.push(attackCar);
+
+        this.skidMarks.push({
+          x: lane.centerX,
+          y: this.chicken.y,
+          alpha: 1
+        });
+      }
+
+      cashOut(isFullCompleted = false) {
+        if (this.state !== 'RUNNING' || this.currentStep === 0 || this.isUnderAttack) return;
+
+        const multIndex = Math.min(this.currentStep - 1, this.totalLanes - 1);
+        let currentMult = this.lanes[multIndex].multiplier;
+        if (isFullCompleted) {
+          currentMult = +(currentMult * 1.5).toFixed(2);
+        }
+
+        const winAmount = parseFloat((this.currentBet * currentMult).toFixed(2));
+        this.addRealBalance(winAmount);
+
+        this.sound.playCashout();
+        this.state = 'WON';
+
+        const alertBox = document.getElementById('cashout-alert');
+        document.getElementById('alert-heading').textContent = isFullCompleted ? `🎉 VICTORY ALL 20 LANES! (${currentMult.toFixed(2)}x)` : `CASHED OUT (${currentMult.toFixed(2)}x)`;
+        document.getElementById('alert-amount').textContent = `+${winAmount.toFixed(2)} ৳`;
+        alertBox.classList.add('active');
+
+        setTimeout(() => {
+          alertBox.classList.remove('active');
+          this.state = 'IDLE';
+          this.initWorld();
+          this.renderButtons();
+        }, 2200);
+      }
+
+      triggerCrash() {
+        this.state = 'CRASHED';
+        this.chicken.dead = true;
+        this.chicken.screaming = true;
+        this.screenShake = 28;
+
+        this.sound.playCrash();
+        this.sound.playChickenSquawk();
+
+        for (let i = 0; i < 35; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 9 + 4;
+          this.feathers.push({
+            x: this.chicken.x,
+            y: this.chicken.y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2.5,
+            rot: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 20,
+            size: Math.random() * 11 + 6,
+            color: Math.random() > 0.3 ? '#ffffff' : (Math.random() > 0.5 ? '#ef4444' : '#f59e0b'),
+            alpha: 1
+          });
+        }
+
+        const container = document.getElementById('action-btn-container');
+        container.innerHTML = `<button class="btn-play-initial" style="background:#e74c3c;">CRASHED!</button>`;
+
+        setTimeout(() => {
+          this.state = 'IDLE';
+          this.initWorld();
+          this.renderButtons();
+        }, 2000);
+      }
+
+      resize() {
+        const box = document.getElementById('viewport-box');
+        this.canvas.width = box.clientWidth;
+        this.canvas.height = box.clientHeight;
+        if (this.state === 'IDLE') this.resetChicken();
+      }
+
+      renderLoop(timestamp) {
+        const dt = (timestamp - this.lastTime) / 1000;
+        this.lastTime = timestamp;
+
+        this.updatePhysics(dt);
+        this.drawScene();
+
+        requestAnimationFrame((t) => this.renderLoop(t));
+      }
+
+      updatePhysics(dt) {
+        if (this.screenShake > 0) {
+          this.screenShake *= 0.88;
+          if (this.screenShake < 0.2) this.screenShake = 0;
+        }
+
+        this.chicken.cluckTimer -= 1;
+        if (this.chicken.cluckTimer <= 0) {
+          if (!this.chicken.dead && this.state !== 'CRASHED') {
+            this.sound.playCluck();
+          }
+          this.chicken.cluckTimer = Math.floor(Math.random() * 260) + 180;
+        }
+
+        this.chicken.breathCycle += dt * 3.8;
+        this.chicken.combWobble = Math.sin(this.chicken.breathCycle * 1.5) * 0.14;
+        this.chicken.tailWiggle = Math.sin(this.chicken.breathCycle * 2.2) * 0.18;
+
+        this.chicken.blinkTimer -= 1;
+        if (this.chicken.blinkTimer <= 0) {
+          this.chicken.isBlinking = true;
+          if (this.chicken.blinkTimer < -8) {
+            this.chicken.isBlinking = false;
+            this.chicken.blinkTimer = Math.floor(Math.random() * 160) + 120;
+          }
+        }
+
+        this.chicken.glanceTimer -= 1;
+        if (this.chicken.glanceTimer <= 0) {
+          this.chicken.eyeGlanceX = (Math.random() - 0.3) * 3.5;
+          this.chicken.eyeGlanceY = (Math.random() - 0.5) * 2;
+          this.chicken.glanceTimer = Math.floor(Math.random() * 90) + 60;
+        }
+
+        if (this.chicken.isJumping) {
+          this.chicken.jumpProgress += dt * 5.0;
+          this.chicken.combWobble = Math.sin(this.chicken.jumpProgress * Math.PI) * 0.4;
+
+          if (this.chicken.jumpProgress >= 1.0) {
+            this.chicken.jumpProgress = 1.0;
+            this.chicken.isJumping = false;
+            this.chicken.x = this.chicken.targetX;
+          } else {
+            this.chicken.x += (this.chicken.targetX - this.chicken.x) * 0.38;
+          }
+        }
+
+        if (this.chicken.x > this.canvas.width * 0.38) {
+          this.targetCameraX = this.chicken.x - this.canvas.width * 0.38;
+        } else {
+          this.targetCameraX = 0;
+        }
+        this.cameraX += (this.targetCameraX - this.cameraX) * 0.12;
+
+        for (let i = this.feathers.length - 1; i >= 0; i--) {
+          const f = this.feathers[i];
+          f.x += f.vx;
+          f.y += f.vy;
+          f.vy += 0.18;
+          f.rot += f.rotSpeed;
+          f.alpha -= 0.016;
+          if (f.alpha <= 0) this.feathers.splice(i, 1);
+        }
+
+        this.lanes.forEach(lane => {
+          lane.vehicles.forEach(veh => {
+            const vSpeed = veh.isKiller ? (lane.speed * veh.speedMultiplier) : lane.speed;
+            veh.y += vSpeed * (dt * 60);
+
+            if (lane.speed > 0 && veh.y > this.canvas.height + 250) {
+              veh.y = -veh.length - 80;
+            } else if (lane.speed < 0 && veh.y < -veh.length - 250) {
+              veh.y = this.canvas.height + 80;
+            }
+
+            if (this.state === 'RUNNING' && !this.chicken.dead) {
+              const chickenHitRadius = 26;
+              const vBox = {
+                left: lane.centerX - veh.width / 2 + 2,
+                right: lane.centerX + veh.width / 2 - 2,
+                top: veh.y + 2,
+                bottom: veh.y + veh.length - 2
+              };
+
+              if (
+                this.chicken.x + chickenHitRadius > vBox.left &&
+                this.chicken.x - chickenHitRadius < vBox.right &&
+                this.chicken.y + chickenHitRadius > vBox.top &&
+                this.chicken.y - chickenHitRadius < vBox.bottom
+              ) {
+                this.triggerCrash();
+              }
+            }
+          });
+        });
+      }
+
+      drawScene() {
+        this.ctx.save();
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        const shakeX = (Math.random() - 0.5) * this.screenShake;
+        const shakeY = (Math.random() - 0.5) * this.screenShake;
+
+        this.ctx.translate(-this.cameraX + shakeX, shakeY);
+
+        this.drawEnvironment();
+        this.drawRoadways();
+        this.drawSkidMarks();
+        this.drawManholes();
+        this.drawFinishArea();
+        this.drawRealisticVehicles();
+        this.drawLifelikeChicken();
+        this.drawFeathers();
+
+        this.ctx.restore();
+      }
+
+      drawEnvironment() {
+        const h = this.canvas.height;
+        const sw = this.sidewalkWidth;
+
+        this.ctx.fillStyle = '#55b839';
+        this.ctx.fillRect(0, 0, 48, h);
+
+        this.ctx.fillStyle = '#469c2d';
+        for (let gy = 10; gy < h; gy += 24) {
+          this.ctx.fillRect(10, gy, 3, 3);
+          this.ctx.fillRect(36, gy + 12, 3, 3);
+        }
+
+        this.trees.forEach(tree => {
+          this.drawRealisticTree(tree.x, tree.y, tree.size);
+        });
+
+        this.ctx.fillStyle = '#cfd5df';
+        this.ctx.fillRect(48, 0, sw - 48, h);
+
+        this.ctx.strokeStyle = '#b4bccb';
+        this.ctx.lineWidth = 1.5;
+        for (let y = 0; y < h; y += 44) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(48, y);
+          this.ctx.lineTo(sw, y);
+          this.ctx.stroke();
+        }
+
+        this.ctx.fillStyle = '#9aa4b5';
+        this.ctx.fillRect(sw - 8, 0, 8, h);
+        this.ctx.fillStyle = '#7a8597';
+        this.ctx.fillRect(sw - 2, 0, 2, h);
+      }
+
+      drawRealisticTree(x, y, r) {
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x + 2, y + r + 2, r * 0.9, r * 0.35, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#78350f';
+        this.ctx.fillRect(x - 4, y, 8, r);
+
+        this.ctx.fillStyle = '#2d6a1d';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#449e2b';
+        this.ctx.beginPath();
+        this.ctx.arc(x - 2, y - 4, r * 0.82, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#65c940';
+        this.ctx.beginPath();
+        this.ctx.arc(x - 4, y - 8, r * 0.52, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+
+      drawRoadways() {
+        const h = this.canvas.height;
+        const roadW = this.totalLanes * this.laneWidth;
+
+        this.ctx.fillStyle = '#4e535c';
+        this.ctx.fillRect(this.sidewalkWidth, 0, roadW, h);
+
+        this.ctx.strokeStyle = '#ffffff';
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([22, 22]);
+
+        for (let i = 1; i <= this.totalLanes; i++) {
+          const lx = this.sidewalkWidth + (i * this.laneWidth);
+          this.ctx.beginPath();
+          this.ctx.moveTo(lx, 0);
+          this.ctx.lineTo(lx, h);
+          this.ctx.stroke();
+        }
+        this.ctx.setLineDash([]);
+      }
+
+      drawFinishArea() {
+        const h = this.canvas.height;
+        const fx = this.sidewalkWidth + (this.totalLanes * this.laneWidth);
+        const fw = this.finishWidth;
+
+        this.ctx.fillStyle = '#9aa4b5';
+        this.ctx.fillRect(fx, 0, 10, h);
+
+        this.ctx.fillStyle = '#4ade80';
+        this.ctx.fillRect(fx + 10, 0, fw - 10, h);
+
+        const tile = 16;
+        for (let ty = 0; ty < h; ty += tile) {
+          for (let tx = fx + 16; tx < fx + 48; tx += tile) {
+            const isWhite = ((tx + ty) / tile) % 2 === 0;
+            this.ctx.fillStyle = isWhite ? '#ffffff' : '#0f172a';
+            this.ctx.fillRect(tx, ty, tile, tile);
+          }
+        }
+
+        const flagX = fx + 90;
+        const flagY = this.canvas.height * 0.56;
+
+        this.ctx.fillStyle = '#64748b';
+        this.ctx.fillRect(flagX - 3, flagY - 50, 6, 95);
+
+        const fSize = 34;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(flagX + 3, flagY - 50, fSize, fSize * 0.7);
+
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(flagX + 3, flagY - 50, fSize / 2, (fSize * 0.7) / 2);
+        this.ctx.fillRect(flagX + 3 + (fSize / 2), flagY - 50 + (fSize * 0.7) / 2, fSize / 2, (fSize * 0.7) / 2);
+
+        this.ctx.fillStyle = '#f59e0b';
+        this.ctx.beginPath();
+        this.ctx.arc(flagX, flagY - 54, 7, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#1e293b';
+        this.ctx.font = '900 16px "Fredoka", sans-serif';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText("FINISH", flagX + 16, flagY + 62);
+      }
+
+      drawSkidMarks() {
+        this.skidMarks.forEach(s => {
+          this.ctx.save();
+          this.ctx.fillStyle = `rgba(20, 20, 20, ${s.alpha * 0.55})`;
+          this.ctx.fillRect(s.x - 14, s.y - 50, 6, 100);
+          this.ctx.fillRect(s.x + 8, s.y - 50, 6, 100);
+          this.ctx.restore();
+        });
+      }
+
+      drawManholes() {
+        const cy = this.canvas.height * 0.6;
+        const radius = 35;
+
+        this.lanes.forEach((lane, idx) => {
+          const cx = lane.centerX;
+          const isTarget = (idx + 1 === this.currentStep);
+          const isPassed = (idx + 1 < this.currentStep);
+
+          this.ctx.save();
+
+          if (isTarget) {
+            this.ctx.strokeStyle = lane.warning ? '#ef4444' : '#00e676';
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            this.ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+            this.ctx.stroke();
+          }
+
+          this.ctx.fillStyle = isPassed ? '#334155' : '#3f444c';
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          this.ctx.strokeStyle = isTarget ? (lane.warning ? '#ef4444' : '#00e676') : '#252932';
+          this.ctx.lineWidth = isTarget ? 4 : 3;
+          this.ctx.stroke();
+
+          this.ctx.fillStyle = isPassed ? '#2ecc71' : (lane.warning ? '#f87171' : '#f8fafc');
+          this.ctx.font = '900 13px "Fredoka", sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.textBaseline = 'middle';
+          this.ctx.fillText(`${lane.multiplier.toFixed(2)}x`, cx, cy);
+
+          this.ctx.restore();
+        });
+      }
+
+      drawRealisticVehicles() {
+        this.lanes.forEach(lane => {
+          lane.vehicles.forEach(veh => {
+            const vx = lane.centerX - veh.width / 2;
+            const vy = veh.y;
+            const isDownward = lane.direction > 0;
+            const w = veh.width;
+            const l = veh.length;
+
+            this.ctx.save();
+
+            if (veh.isKiller) {
+              this.ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+              this.ctx.fillRect(vx - 2, isDownward ? vy - 80 : vy + l, w + 4, 80);
+            }
+
+            const beamGrad = this.ctx.createLinearGradient(
+              lane.centerX, vy + (isDownward ? l : 0),
+              lane.centerX, vy + (isDownward ? l + 110 : -110)
+            );
+            beamGrad.addColorStop(0, veh.isKiller ? 'rgba(239, 68, 68, 0.8)' : 'rgba(254, 240, 138, 0.55)');
+            beamGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+            this.ctx.fillStyle = beamGrad;
+            this.ctx.beginPath();
+            if (isDownward) {
+              this.ctx.moveTo(vx + 4, vy + l);
+              this.ctx.lineTo(vx - 20, vy + l + 110);
+              this.ctx.lineTo(vx + w + 20, vy + l + 110);
+              this.ctx.lineTo(vx + w - 4, vy + l);
+            } else {
+              this.ctx.moveTo(vx + 4, vy);
+              this.ctx.lineTo(vx - 20, vy - 110);
+              this.ctx.lineTo(vx + w + 20, vy - 110);
+              this.ctx.lineTo(vx + w - 4, vy);
+            }
+            this.ctx.fill();
+
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            this.ctx.beginPath();
+            this.ctx.roundRect(vx + 3, vy + 4, w, l, 10);
+            this.ctx.fill();
+
+            this.ctx.fillStyle = '#090d16';
+            this.ctx.fillRect(vx - 3.5, vy + 12, 3.5, 16);
+            this.ctx.fillRect(vx + w, vy + 12, 3.5, 16);
+            this.ctx.fillRect(vx - 3.5, vy + l - 28, 3.5, 16);
+            this.ctx.fillRect(vx + w, vy + l - 28, 3.5, 16);
+
+            this.ctx.fillStyle = veh.bodyColor;
+            this.ctx.beginPath();
+            this.ctx.roundRect(vx, vy, w, l, 9);
+            this.ctx.fill();
+
+            this.ctx.fillStyle = veh.roofColor;
+            const mirrorY = isDownward ? vy + 24 : vy + l - 28;
+            this.ctx.fillRect(vx - 4, mirrorY, 4, 6);
+            this.ctx.fillRect(vx + w, mirrorY, 4, 6);
+
+            this.ctx.fillStyle = veh.glassColor;
+            this.ctx.beginPath();
+            this.ctx.roundRect(vx + 4, vy + 16, w - 8, l - 32, 6);
+            this.ctx.fill();
+
+            this.ctx.fillStyle = veh.roofColor;
+            this.ctx.beginPath();
+            this.ctx.roundRect(vx + 5, vy + 24, w - 10, l - 48, 5);
+            this.ctx.fill();
+
+            if (veh.hasTaxiSign) {
+              this.ctx.fillStyle = '#ffffff';
+              this.ctx.fillRect(lane.centerX - 8, vy + l / 2 - 4, 16, 8);
+              this.ctx.fillStyle = '#000000';
+              this.ctx.font = '900 6px sans-serif';
+              this.ctx.fillText('TAXI', lane.centerX, vy + l / 2 + 2);
+            }
+
+            if (isDownward) {
+              this.ctx.fillStyle = '#fef08a';
+              this.ctx.fillRect(vx + 3, vy + l - 3, 8, 3);
+              this.ctx.fillRect(vx + w - 11, vy + l - 3, 8, 3);
+
+              this.ctx.fillStyle = '#ef4444';
+              this.ctx.fillRect(vx + 3, vy, 8, 3);
+              this.ctx.fillRect(vx + w - 11, vy, 8, 3);
+            } else {
+              this.ctx.fillStyle = '#fef08a';
+              this.ctx.fillRect(vx + 3, vy, 8, 3);
+              this.ctx.fillRect(vx + w - 11, vy, 8, 3);
+
+              this.ctx.fillStyle = '#ef4444';
+              this.ctx.fillRect(vx + 3, vy + l - 3, 8, 3);
+              this.ctx.fillRect(vx + w - 11, vy + l - 3, 8, 3);
+            }
+
+            this.ctx.restore();
+          });
+        });
+      }
+
+      drawLifelikeChicken() {
+        const cx = this.chicken.x;
+        let cy = this.chicken.y;
+
+        let jumpOffset = 0;
+        if (this.chicken.isJumping) {
+          jumpOffset = -Math.sin(this.chicken.jumpProgress * Math.PI) * 36;
+        }
+
+        const breathY = Math.sin(this.chicken.breathCycle) * 1.8;
+        const breathScaleX = 1 + Math.sin(this.chicken.breathCycle) * 0.03;
+        const breathScaleY = 1 - Math.sin(this.chicken.breathCycle) * 0.025;
+
+        this.ctx.save();
+        this.ctx.translate(cx, cy + jumpOffset + breathY);
+
+        const baseScale = this.chicken.scale;
+        if (this.chicken.dead) {
+          this.ctx.scale(baseScale * 1.3, baseScale * 0.45);
+        } else {
+          this.ctx.scale(baseScale * breathScaleX, baseScale * breathScaleY);
+        }
+
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 24 - jumpOffset * 0.3, 22, 9, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.save();
+        this.ctx.translate(-22, -4);
+        this.ctx.rotate(this.chicken.tailWiggle);
+        this.ctx.fillStyle = '#f1f5f9';
+        this.ctx.strokeStyle = '#334155';
+        this.ctx.lineWidth = 2.4;
+
+        this.ctx.beginPath();
+        this.ctx.ellipse(-5, -7, 12, 7, -0.6, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.ellipse(-4, 3, 11, 6, 0.2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.restore();
+
+        this.ctx.fillStyle = '#f59e0b';
+        this.ctx.strokeStyle = '#d97706';
+        this.ctx.lineWidth = 1.6;
+
+        this.ctx.fillRect(-14, 18, 10, 8);
+        this.ctx.strokeRect(-14, 18, 10, 8);
+        this.ctx.fillRect(5, 18, 10, 8);
+        this.ctx.strokeRect(5, 18, 10, 8);
+
+        this.ctx.fillStyle = '#e2e8f0';
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 4, 27, 23, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 1, 26, 22, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.strokeStyle = '#334155';
+        this.ctx.lineWidth = 2.8;
+        this.ctx.stroke();
+
+        this.ctx.save();
+        this.ctx.translate(-8, 3);
+        const wingAngle = this.chicken.dead ? 0.8 : (this.chicken.combWobble * 0.4);
+        this.ctx.rotate(wingAngle);
+
+        this.ctx.fillStyle = '#f8fafc';
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 0, 13, 9, 0.2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        this.ctx.strokeStyle = '#cbd5e1';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(-2, 0, 8, 0.3, Math.PI * 0.8);
+        this.ctx.stroke();
+        this.ctx.restore();
+
+        this.ctx.save();
+        this.ctx.translate(2, -21);
+        this.ctx.rotate(this.chicken.combWobble);
+
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.strokeStyle = '#334155';
+        this.ctx.lineWidth = 2.4;
+
+        this.ctx.beginPath();
+        this.ctx.arc(-10, 0, 6.5, 0, Math.PI * 2);
+        this.ctx.arc(0, -6, 8, 0, Math.PI * 2);
+        this.ctx.arc(10, 1, 6.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.restore();
+
+        const eyeCenterX = 9;
+        const eyeCenterY = -6;
+
+        if (this.chicken.dead) {
+          this.ctx.strokeStyle = '#0f172a';
+          this.ctx.lineWidth = 3.2;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(4, -12);
+          this.ctx.lineTo(14, -2);
+          this.ctx.moveTo(14, -12);
+          this.ctx.lineTo(4, -2);
+          this.ctx.stroke();
+        } else if (this.chicken.isBlinking) {
+          this.ctx.strokeStyle = '#334155';
+          this.ctx.lineWidth = 3;
+          this.ctx.beginPath();
+          this.ctx.arc(eyeCenterX, eyeCenterY, 9, 0.2, Math.PI - 0.2);
+          this.ctx.stroke();
+        } else {
+          this.ctx.fillStyle = '#ffffff';
+          this.ctx.beginPath();
+          this.ctx.arc(eyeCenterX, eyeCenterY, 10, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.strokeStyle = '#334155';
+          this.ctx.lineWidth = 2.6;
+          this.ctx.stroke();
+
+          const pupilX = eyeCenterX + 2 + this.chicken.eyeGlanceX;
+          const pupilY = eyeCenterY + this.chicken.eyeGlanceY;
+
+          this.ctx.fillStyle = '#0f172a';
+          this.ctx.beginPath();
+          this.ctx.arc(pupilX, pupilY, 5, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          this.ctx.fillStyle = '#ffffff';
+          this.ctx.beginPath();
+          this.ctx.arc(pupilX - 1.5, pupilY - 1.8, 1.8, 0, Math.PI * 2);
+          this.ctx.arc(pupilX + 1.8, pupilY + 1.2, 0.9, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          this.ctx.fillStyle = 'rgba(244, 114, 182, 0.55)';
+          this.ctx.beginPath();
+          this.ctx.ellipse(3, 7, 5.5, 3.2, 0, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+
+        this.ctx.fillStyle = '#f97316';
+        this.ctx.strokeStyle = '#334155';
+        this.ctx.lineWidth = 2.4;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(17, -4);
+        this.ctx.lineTo(30, -1);
+        this.ctx.lineTo(17, 7);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        this.ctx.save();
+        this.ctx.translate(15, 10);
+        this.ctx.rotate(this.chicken.combWobble * 0.8);
+        this.ctx.fillStyle = '#dc2626';
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = '#334155';
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        this.ctx.restore();
+
+        this.ctx.restore();
+
+        if (this.chicken.screaming) {
+          this.ctx.save();
+          this.ctx.translate(cx, cy - 58);
+
+          this.ctx.fillStyle = '#ff3b30';
+          this.ctx.strokeStyle = '#ffffff';
+          this.ctx.lineWidth = 3.5;
+          this.ctx.font = '900 22px "Fredoka", sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.strokeText('BWAAAK!! 💥', 0, 0);
+          this.ctx.fillText('BWAAAK!! 💥', 0, 0);
+
+          this.ctx.restore();
+        }
+      }
+
+      drawFeathers() {
+        this.feathers.forEach(f => {
+          this.ctx.save();
+          this.ctx.translate(f.x, f.y);
+          this.ctx.rotate((f.rot * Math.PI) / 180);
+          this.ctx.globalAlpha = f.alpha;
+          this.ctx.fillStyle = f.color;
+          this.ctx.beginPath();
+          this.ctx.ellipse(0, 0, f.size, f.size * 0.45, 0, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        });
+      }
+
+      initLiveWinnerTicker() {
+        const names = ['Fahim', 'Majdi', 'Tariq', 'Sabbir', 'Hasan', 'Tanvir', 'Mustafa', 'Arefin', 'Shakib', 'Raju'];
+        const flags = ['🇦🇪', '🇵🇸', '🇧🇩', '🇹🇷', '🇲🇾', '🇶🇦', '🇸🇦'];
+        const toast = document.getElementById('live-user-toast');
+        const userTxt = document.getElementById('toast-username');
+        const winTxt = document.getElementById('toast-winamount');
+        const onlineCount = document.getElementById('online-counter');
+
+        setInterval(() => {
+          const currentCount = parseInt(onlineCount.textContent, 10);
+          onlineCount.textContent = currentCount + (Math.floor(Math.random() * 5) - 2);
+
+          const name = names[Math.floor(Math.random() * names.length)];
+          const flag = flags[Math.floor(Math.random() * flags.length)];
+          const win = (Math.random() * 450 + 50).toFixed(2);
+
+          toast.style.display = 'none';
+          void toast.offsetWidth;
+          toast.style.display = 'flex';
+
+          document.querySelector('.user-avatar').textContent = flag;
+          userTxt.textContent = name;
+          winTxt.textContent = `+৳${win}`;
+        }, 5000);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      new ChickenRoadMaster();
+    });
+  </script>
+</body>
+</html>
